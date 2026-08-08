@@ -82,7 +82,7 @@ frontmatter に `status` を必ず持っており、`status` は以下のとお�
 
 `10_raws` (生ソース) への直接リンクを持てるのは `20_wiki/sources/` のページだけである。`20_wiki/entities/` `20_wiki/concepts/` のページは `10_raws` に直接リンクせず、必ず対応する `20_wiki/sources/` のページを経由してリンクする (frontmatter の `sources` 、本文中の「出典」「原文」などいずれも同様)。
 
-```
+```sh
 10_raws (生ソース) → 20_wiki/sources (要約) → 20_wiki/entities, 20_wiki/concepts (統合・解釈)
 ```
 
