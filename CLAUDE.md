@@ -1,6 +1,6 @@
 # CLAUDE
 
-このリポジトリは「LLM Wiki」パターンで運用する個人用ナレッジベースである。パターンの元となる着想は [[vault/10_raws/clips/20260802_llm-wiki]] (karpathy 提唱、日本語訳) を参照。あなた (LLM) は単なる汎用チャットボットではなく、この Wiki の編集者・維持管理者として振る舞うこと。
+このリポジトリは「LLM Wiki」パターンで運用する個人用ナレッジベースである。パターンの元となる着想は [[10_raws/clips/20260802_llm-wiki]] (karpathy 提唱、日本語訳) を参照。あなた (LLM) は単なる汎用チャットボットではなく、この Wiki の編集者・維持管理者として振る舞うこと。
 
 ## 役割分担
 
@@ -9,35 +9,54 @@
 
 ## リポジトリ構成
 
-`CLAUDE.md` / `README.md` / `.claude/` は公開用リポジトリで管理し、実データを含む `vault/` (`00_pools/` `01_sessions/` `10_raws/` `20_wiki/` `.obsidian/`) は別の非公開リポジトリで管理する。以下の「ディレクトリ構成」に登場するパスはすべて `vault/` 配下にある前提で読むこと。
+`vault/` が「LLM Wiki」の中核であり、ナレッジの実データを格納する。
 
-パスには2つの基準点があるので混同しないこと。
+本プロジェクトは公開用リポジトリで管理する。ただし、実データを含む `vault/` 配下は非公開リポジトリまたはクラウドストレージで管理する。
 
-- **Claude Code のファイル操作パス**: リポジトリルート基準。`vault/10_raws/...` のように必ず `vault/` を付ける
-- **Obsidian の `[[wikilink]]`**: Obsidian は `vault/` ディレクトリ自体を vault として開く (`.obsidian/` も `vault/` 直下にある) ため、vault ルート基準となり `vault/` を付けない (例: `[[10_raws/clips/ファイル名]]`)。`vault/20_wiki/` 配下のページ本文・frontmatter に書く `[[...]]` リンクはすべてこちらに従う
+Obsidian vault のルートは `vault/` である。本ドキュメントに現れる wikilink やパスはすべて `vault/` を基準とする (`vault/` 自体は付けない)。
 
-## ディレクトリ構成
+### `vault/00_pools/`
 
-### `vault/00_pools/` : 未整理の着想プール
+このフォルダはユーザの**未整理の着想プール**。
 
-ユーザのアイデアや着想のメモ置き場。LLM が勝手に読み書きすることはない。
+ディレクトリ構成は以下。
 
-### `vault/10_raws/` : 生ソース (不変・信頼できる情報源)
+- `memos/`: ユーザのアイデアや着想のメモ置き場。LLM は勝手に読み書きしない。
+- `sessions/`: LLM とのセッションの記録や、ユーザが他者と打ち合わせした会話のログ。`/session` が書き、`/meeting` が読む。
 
-このレイヤーのファイルは LLM が**読むことはあっても書き換えない**。LLM は Ingest 時に frontmatter の `status` のみ書き換えを許可される。各ファイル名は `YYYYMMDD_slug.md` で記録される。
+### `vault/10_raws/`
 
-frontmatter に `status` を必ず持っており、`status` は以下のとおり。
+このフォルダは**生ソース (不変・信頼できる情報源)**。LLM はここを読むだけで、書き換えることはない。例外は `/ingest` による frontmatter の `status` 更新と、`/meeting` による `meetings/` へのファイル新規作成の 2 つのみ。
 
-- `active` : ユーザの手で作成中。
-- `done` : LLM による ingest 可能な状態。ユーザが状態に更新する。
-- `ingested` : LLM により ingest 済みの状態。LLM がこの状態に更新する。
+ディレクトリ構成は以下。
 
-サブディレクトリと格納する情報は以下のとおり。
-
+- `assets/` : 各 markdown が参照する画像・音声・動画などのバイナリ資産。
+- `meetings/` : `/meeting` スキルが `vault/00_pools/sessions/` から抽出した議事録。
 - `clips/` : Obsidian Web Clipper 等で取り込んだウェブ記事。
 - `notes/` : 手動で書いた生メモ・一次情報。
 
-### `vault/20_wiki/` : LLM が生成・維持する Wiki 本体
+各ファイル名は `YYYYMMDD_<タイトル>.md` で記録される。`<タイトル>` は日本語も可。
+
+frontmatter の必須の項目は以下。それ以外の項目があっても違反とはしない。
+
+- `title`: タイトル
+- `created`: 作成日 (`YYYY-MM-DD`)
+- `type`: ソースのタイプ (`meeting` | `clip` | `note`)
+- `status`: このソースの状態 (値は後述を参照)
+
+`status` は以下のとおり。
+
+- `draft` : ユーザの手で作成・修正中。
+- `stable` : LLM による ingest 可能な状態。ユーザがこの状態に更新する。
+- `ingested` : LLM により ingest 済みの状態。LLM がこの状態に更新する。
+
+遷移は `draft → stable → ingested`。ingest 済みのソースを直す場合はユーザが `draft` に戻す。
+
+### `vault/20_wiki/`
+
+このフォルダは**LLM が生成・維持する Wiki 本体**。
+
+ディレクトリ構成は以下。
 
 - `entities/` — 人物・組織・プロダクトなど固有の実体に関するページ
 - `concepts/` — 概念・用語・パターン、比較や統合的な考察のページ
@@ -45,7 +64,7 @@ frontmatter に `status` を必ず持っており、`status` は以下のとお�
 - `index.md` — Wiki 全体のカタログ (下記参照)
 - `log.md` — 時系列の作業ログ (下記参照)
 
-カテゴリは上記 3 種類に固定する。LLM が判断で追加することは禁止。追加が必要だと感じた場合はユーザーに提案すること。
+カテゴリは `entities/` `concepts/` `sources/` の 3 種類に固定する。LLM が判断で追加することは禁止。追加が必要だと感じた場合はユーザに提案すること。
 
 ## Wiki の維持管理ルール
 
@@ -53,25 +72,39 @@ frontmatter に `status` を必ず持っており、`status` は以下のとお�
 
 ### `index.md` の形式
 
-カテゴリ (エンティティ/概念/ソース) ごとに見出しを分け、各ページを 1 行 (リンク・1 行要約・更新日などのメタデータ) でリスト化する。
+H1 (`# Index`) と導入文の後、カテゴリごとに `##` 見出し (`## エンティティ` / `## 概念` / `## ソース`) を置き、配下の各ページを以下の 1 行でリスト化する。
+
+```markdown
+- [[ページ名]] — <1 行要約> (<updated>)
+```
+
+- `ページ名` は下記「リンクの書式」に従う (フォルダなし・拡張子なし)
+- `<1 行要約>` は 60 字程度。曖昧さ回避の修飾語を付けたページは、両者の違いが分かるように書く
+- `<updated>` は当該ページの frontmatter `updated` の値 (`YYYY-MM-DD`)。「更新」などの語は付けない
+- 各カテゴリ内は追加順 (古いものから) に並べ、既存行の並べ替えはしない
+- `index.md` `log.md` 自身は掲載しない
 
 ### `log.md` の形式
 
 追記のみ (append-only)。各エントリは以下のプレフィックスで始める。
 
 ```markdown
-## [YYYY-MM-DD] <ingest|query|lint> | <タイトル>
+## [YYYY-MM-DD] <ingest|lint> | <タイトル>
 ```
 
 例: `grep "^## \[" vault/20_wiki/log.md | tail -5` で直近 5 件を確認できる。
 
 ### Wiki ページの frontmatter 規約
 
-- `title`
-- `type`: entity | concept | source
-- `tags`
-- `created`
-- `updated`
+`entities/` `concepts/` `sources/` 配下のページに適用する (`index.md` `log.md` はこの規約の対象外で、frontmatter を持たず H1 を先頭に置く)。
+
+必須の項目は以下。それ以外の項目があっても違反とはしない。
+
+- `title`: タイトル
+- `type`: カテゴリ (entity | concept | source) のいずれか。`10_raws/` の `type` (`meeting` | `clip` | `note`) とは別の語彙である。生ソース 1 件に対応する要約ページは、raw 側の `type` によらず必ず `type: source` になる
+- `tags`: タグ。複数可。
+- `created`: 作成日 (`YYYY-MM-DD`)
+- `updated`: 更新日 (`YYYY-MM-DD`)
 - `sources`: このページの根拠となった wikilink。`type` によってリンク先が異なる (詳細は下記「引用チェーン」参照)
   - `type: source` のページ: 根拠となった `10_raws` 配下のファイルへの直接リンク
   - `type: entity` / `type: concept` のページ: 根拠となった `20_wiki/sources/` のページへのリンク (`10_raws` への直接リンクは書かない)
@@ -82,7 +115,7 @@ frontmatter に `status` を必ず持っており、`status` は以下のとお�
 
 `10_raws` (生ソース) への直接リンクを持てるのは `20_wiki/sources/` のページだけである。`20_wiki/entities/` `20_wiki/concepts/` のページは `10_raws` に直接リンクせず、必ず対応する `20_wiki/sources/` のページを経由してリンクする (frontmatter の `sources` 、本文中の「出典」「原文」などいずれも同様)。
 
-```sh
+```text
 10_raws (生ソース) → 20_wiki/sources (要約) → 20_wiki/entities, 20_wiki/concepts (統合・解釈)
 ```
 
@@ -97,12 +130,20 @@ Obsidian の `[[ページ名]]` 形式を使う。リンク先が `20_wiki/` 内
 
 ### ページ名の一意性
 
-`20_wiki/` 配下でページ名 (ファイル名) は一意にすること。同名ファイルが複数フォルダに存在すると、`[[ページ名]]` だけではリンク先を一意に特定できず、LLM がファイルを検索・参照する際に誤ったページを指してしまう恐れがある。`10_raws/` のファイル名との重複は許容するが、その場合は上記「リンクの書式」に従い `10_raws/` 側を必ずフルパスで参照すること。
+`vault/20_wiki/` 配下でページ名 (ファイル名) は一意にすること。同名ファイルが複数フォルダに存在すると、`[[ページ名]]` だけではリンク先を一意に特定できず、LLM がファイルを検索・参照する際に誤ったページを指してしまう。
 
-- 新しいページを作成する前に、`vault/20_wiki/` 全体を検索し (例: `find vault/20_wiki -iname "<ページ名>.md"`)、同名の既存ページがないか確認する
+- 新しいページを作成する前に、`vault/20_wiki/` 全体を検索し (例: `find vault/20_wiki/ -iname "<ページ名>.md"`)、同名の既存ページがないか確認する
 - 同名になりそうな場合は、曖昧さ回避の修飾語をページ名に付ける (例: `Claude (企業)` と `Claude (モデル)`)
 - 修飾語を付けた場合は `index.md` の要約行にも両者の違いが分かるよう明記する
 
 ## オペレーション
 
-Ingest / Query / Lint / Session は /ingest /query /lint /session を使う。
+各操作はスキルとして定義されており、`/ingest` `/query` `/lint` `/session` `/meeting` で起動する。具体的な手順は各スキル定義が持ち、本ドキュメントは対象レイヤーと責務のみを定める。
+
+| 操作       | 読む                          | 書く                                              | 概要                                           |
+| ---------- | ----------------------------- | ------------------------------------------------- | ---------------------------------------------- |
+| `/ingest`  | `10_raws/` (`status: stable`) | `20_wiki/` 全体、および対象ソースの `status` のみ | 生ソースを Wiki に取り込む                     |
+| `/query`   | `20_wiki/`                    | なし (読み取り専用)                               | Wiki の内容をもとに出典付きで回答する          |
+| `/lint`    | `20_wiki/`                    | `20_wiki/` 全体                                   | 矛盾・孤立ページ・リンク不整合を検出し修正する |
+| `/session` | 現在の会話                    | `00_pools/sessions/`                              | 会話をセッション記録として保存する             |
+| `/meeting` | `00_pools/sessions/`          | `10_raws/meetings/`                               | セッションから議事録を抽出し生ソース化する     |
