@@ -15,14 +15,14 @@ description: vault/10_raws 配下の生ソース(status:stable)を vault/20_wiki
 
 `vault/10_raws/clips/` `vault/10_raws/notes/` `vault/10_raws/meetings/` を横断して、frontmatter の `status: stable` のファイルを一覧表示する。**それ以上は何もしない。** 要約作成や Wiki 更新などの処理は一切行わず、ユーザが対象を選んで `/ingest <path>` を実行するのを待つ。
 
-- `status: draft` (ユーザが作成・修正中) と `status: ingested` (処理済み) は一覧に含めない
+- `status: draft` (ユーザが作成・修正中)、`status: ingested` (処理済み)、`status: archived` (取り込まないと判断済み) は一覧に含めない
 - 該当ファイルが 0 件でもエラーにせず、その旨を伝えるだけに留める
 
 ### 引数あり (`/ingest <path>`)
 
 指定された 1 ファイルのみを対象に、下記の手順を実行する。
 
-- 指定ファイルの `status` が `stable` でない場合 (`draft` または `ingested`)、処理を開始せずユーザに状況を伝えて確認を取る
+- 指定ファイルの `status` が `stable` でない場合 (`draft` / `ingested` / `archived`)、処理を開始せずユーザに状況を伝えて確認を取る
 - 複数ファイルが指定された場合や、まとめて処理するようユーザから指示された場合でも、1 回の呼び出しでは 1 ファイルだけを処理する。残りは「次はどのファイルを処理しますか」と確認し、`/ingest <path>` を個別に呼び直してもらう
 
 ## 手順 (引数ありの場合のみ実行)
