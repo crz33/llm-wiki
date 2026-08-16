@@ -15,6 +15,8 @@
 
 Obsidian vault のルートは `vault/` である。本ドキュメントに現れる wikilink やパスはすべて `vault/` を基準とする (`vault/` 自体は付けない)。
 
+`home/` はホームディレクトリの構造を写した領域で、$HOME 側から symlink して使う。現在は `home/.claude/CLAUDE.md` のみを置く。これは全プロジェクトに読み込まれるユーザ設定であり、ルートの `CLAUDE.md` (本ファイル、このリポジトリ専用) とは別物である。`~/.claude/settings.json` はマシン固有の値と同意フラグを含むため、ここでは管理しない。
+
 ### `vault/00_pools/`
 
 このフォルダはユーザの**未整理の着想プール**。
@@ -157,3 +159,7 @@ Obsidian の `[[ページ名]]` 形式を使う。リンク先が `20_wiki/` 内
 | `/session` | 現在の会話                    | `00_pools/sessions/`                              | 会話をセッション記録として保存する             |
 | `/meeting` | `00_pools/sessions/`          | `10_raws/meetings/`、および対象セッションの `status` のみ | セッションから議事録を抽出し生ソース化する (完了後に対象セッションを `accepted` に更新する) |
 | `/note`    | note.com (公開 API)           | `10_raws/notes/`, `10_raws/assets/`               | note.com の公開記事を生ソースとして取り込む (再取り込み時は当該ソースの `status` を `draft` に戻す) |
+
+このうち `/session` `/query` の 2 つはユーザスキルに昇格しており、他のリポジトリの Claude Code セッションからも起動できる。実体はこのリポジトリの `.claude/skills/` にあり、`~/.claude/skills/` から symlink している。両スキルの SKILL.md は vault を `~/workspace/llm-wiki/vault/` と直接指すため、カレントディレクトリに依存しない。
+
+この 2 つを選んだのは、vault を「llm-wiki ディレクトリの中身」ではなく「どのプロジェクトからでも引ける個人の知識層」にするため。書き込み側の `/session` は `00_pools/` にしか触れず、読み取り側の `/query` は規約上どこにも書き込まない。他の 4 スキルは `10_raws/` `20_wiki/` を書き換えるので、このリポジトリの中でだけ動かす。

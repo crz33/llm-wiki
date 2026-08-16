@@ -5,11 +5,21 @@ description: 現在の会話を要約してセッション記録として vault/
 
 # Session 記録
 
-ここまでの会話を要約し、`vault/00_pools/sessions/` に Markdown ファイルとして書き残す。ここに書かれる内容は **気軽な記録** であり、`vault/10_raws/` のような不変性・信頼性は持たない。重要だと判断されたセッションを選んで `vault/10_raws/` に昇格させ、素案化する作業は `/meeting` の担当であり、このスキルの範囲外。
+ここまでの会話を要約し、vault の `00_pools/sessions/` に Markdown ファイルとして書き残す。ここに書かれる内容は **気軽な記録** であり、`10_raws/` のような不変性・信頼性は持たない。重要だと判断されたセッションを選んで `10_raws/` に昇格させ、素案化する作業は `/meeting` の担当であり、このスキルの範囲外。
+
+## Vault の場所
+
+このスキルはユーザスキルであり、どのプロジェクトの会話からでも起動される。書き込み先は常に以下であって、カレントディレクトリの下ではない。
+
+```text
+~/workspace/llm-wiki/vault/
+```
+
+`~` はホームディレクトリを指す。以降このドキュメントに現れる vault 相対パスは、すべてこのパスを基準とする。
 
 ## ファイル
 
-- 保存先: `vault/00_pools/sessions/YYYYMMDD_slug.md`(ディレクトリがなければ作成する)
+- 保存先: `~/workspace/llm-wiki/vault/00_pools/sessions/YYYYMMDD_slug.md`
 - `slug` は話題を表す短い英語の kebab-case
 - 同日に同じ `slug` のファイルが既にある場合は `-2`, `-3` ... と連番を振って衝突を避ける
 
@@ -22,6 +32,7 @@ source: claude-code
 session_id: <わかれば記載。取得できなければ省略してよい>
 created: <YYYY-MM-DD>
 title: <会話の主題を表す短い日本語タイトル>
+project: <llm-wiki 以外のリポジトリでの会話ならリポジトリ名。llm-wiki 自身なら省略>
 status: logged  # logged | rejected | accepted
 ---
 ```
@@ -29,8 +40,8 @@ status: logged  # logged | rejected | accepted
 `status` は以下の 3 状態を取る。
 
 - `logged`: 記録直後の初期状態。このスキルが作成時に設定する
-- `rejected`: 内容を確認したが、`vault/10_raws/` へ昇華させる価値はないと判断した状態。ユーザがこの状態に更新する
-- `accepted`: 内容を確認し、`vault/10_raws/` へ整理・反映済みの状態。昇格スキルがこの状態に更新する
+- `rejected`: 内容を確認したが、`10_raws/` へ昇華させる価値はないと判断した状態。ユーザがこの状態に更新する
+- `accepted`: 内容を確認し、`10_raws/` へ整理・反映済みの状態。昇格スキルがこの状態に更新する
 
 このスキル自身が更新するのは `logged` の設定のみ。`accepted` への更新は昇格スキルの担当であり、`/meeting` が議事録を作成した時点でその対象セッションを `accepted` に更新する。`rejected` への更新はユーザの判断。
 
@@ -38,7 +49,7 @@ status: logged  # logged | rejected | accepted
 
 タイトルは frontmatter の `title` に一元化する。本文冒頭に `# <title>` という H1 見出しを重複して書かない。本文の見出しは `## ` から始める。
 
-1. (任意)前提: 過去の関連セッション(`vault/00_pools/sessions/` 配下)を引き継いでいる場合、その旨とファイルへの参照を 1〜2 文で書く
+1. (任意)前提: 過去の関連セッション(`00_pools/sessions/` 配下)を引き継いでいる場合、その旨とファイルへの参照を 1〜2 文で書く
 2. `## User` / `## Assistant` を交互に繰り返し、会話を要約する
    - `User` の発言はほぼそのまま書く(意図が薄まらない範囲で圧縮してよい)
    - `Assistant` の発言は大きく圧縮する。ツール呼び出しは `[tool: ツール名]` の形式で使ったことだけを記し、生の出力は書かない。重要な結論・引用・表は残す
@@ -48,5 +59,7 @@ status: logged  # logged | rejected | accepted
 
 ## 注意
 
-- `vault/10_raws/` `vault/20_wiki/` への書き込みは行わない。あくまで `vault/00_pools/sessions/` への保存のみ
+- `10_raws/` `20_wiki/` への書き込みは行わない。あくまで `00_pools/sessions/` への保存のみ
 - 会話全体をそのまま書き写すのではなく、後で読み返して要点が分かる粒度に圧縮すること
+- llm-wiki 以外のリポジトリで起動された場合も、そのリポジトリ内には一切書き込まない。記録先は上記の vault だけ
+- 記録した内容がそのプロジェクト固有の実装判断なら、その旨を本文に書き添える。vault に残す価値があるかの選別は `/meeting` `/ingest` の担当なので、ここでは判断しない
