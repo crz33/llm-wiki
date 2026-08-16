@@ -29,10 +29,10 @@ status: logged  # logged | rejected | accepted
 `status` は以下の 3 状態を取る。
 
 - `logged`: 記録直後の初期状態。このスキルが作成時に設定する
-- `rejected`: 内容を確認したが、`vault/10_raws/` へ昇華させる価値はないと判断した状態。ユーザまたは昇格スキルがこの状態に更新する
+- `rejected`: 内容を確認したが、`vault/10_raws/` へ昇華させる価値はないと判断した状態。ユーザがこの状態に更新する
 - `accepted`: 内容を確認し、`vault/10_raws/` へ整理・反映済みの状態。昇格スキルがこの状態に更新する
 
-このスキル自身が更新するのは `logged` の設定のみ。`rejected` / `accepted` への更新は昇格スキル(別スキル、未実装)の担当。`/meeting` も対象セッションの `status` は変更しない。
+このスキル自身が更新するのは `logged` の設定のみ。`accepted` への更新は昇格スキルの担当であり、`/meeting` が議事録を作成した時点でその対象セッションを `accepted` に更新する。`rejected` への更新はユーザの判断。
 
 ## 本文の構成
 

@@ -1,11 +1,11 @@
 ---
 name: meeting
-description: vault/00_pools/sessions の対話ログ(status:logged)を議事録的に要約し、vault/10_raws/meetings に type:meeting の生ソースとして新規作成する。セッションで得られた結論を Wiki 取り込み(/ingest)の対象になり得る形に昇格させたいときに使う。
+description: vault/00_pools/sessions の対話ログ(status:logged)を議事録的に要約し、vault/10_raws/meetings に type:meeting の生ソースとして新規作成したうえで、抽出元セッションの status を accepted に更新する。セッションで得られた結論を Wiki 取り込み(/ingest)の対象になり得る形に昇格させたいときに使う。
 ---
 
 # Meeting
 
-`vault/00_pools/sessions/` に記録された対話ログを 1 件選び、その中の結論・決定事項を `vault/10_raws/meetings/` へ `type: meeting` の生ソースとして抽出する。ディレクトリ構成・ファイル名・frontmatter の共通規約は `CLAUDE.md` の「`vault/10_raws/`」の節を参照すること。本スキルはワークフローと、`type: meeting` に固有の項目 (`source`・本文構成) を定める。
+`vault/00_pools/sessions/` に記録された対話ログを 1 件選び、その中の結論・決定事項を `vault/10_raws/meetings/` へ `type: meeting` の生ソースとして抽出し、抽出元セッションの `status` を `accepted` に更新する。ディレクトリ構成・ファイル名・frontmatter の共通規約は `CLAUDE.md` の「`vault/10_raws/`」の節を参照すること。本スキルはワークフローと、`type: meeting` に固有の項目 (`source`・本文構成) を定める。
 
 このスキルは常に **1 回の呼び出しにつき 1 セッションファイルのみ** を対象にする(1 セッション = 1 raw ノート)。
 
@@ -36,6 +36,7 @@ description: vault/00_pools/sessions の対話ログ(status:logged)を議事録�
      ---
      title: <トピックを表す短い日本語タイトル(セッションのtitleを踏襲・リファインしてよい)>
      source: "[[00_pools/sessions/YYYYMMDD_slug]]"
+     prev: "[[10_raws/meetings/YYYYMMDD_slug]]"
      created: <セッションファイルの created 値をそのまま踏襲>
      tags: [...]
      type: meeting
@@ -43,15 +44,24 @@ description: vault/00_pools/sessions の対話ログ(status:logged)を議事録�
      ---
      ```
    - `source` は抽出元のセッションファイルへの wikilink。vault ルート基準のフルパスで書く(`clips/` の `source` が外部 URL で果たす役割を、対話ログという内部ソースに対して果たす)
+   - `prev` は同じ議論の流れにおける 1 つ前の議事録への wikilink。`source` が「どのセッションから来たか」(縦) を示すのに対し、`prev` は「どの議事録の続きか」(横) を示す
+     - 判定方法: 抽出元セッションの `## 前提` に前セッションへの wikilink があれば、そのセッションと同じ `YYYYMMDD_slug` を持つ `10_raws/meetings/` のファイルを指す
+     - 前セッションがまだ議事録化されていない場合は `prev` を書かず、その旨を手順5の報告で伝える
+     - チェーンの起点(`## 前提` がない)の場合は `prev` の行ごと省略する
    - 本文構成
      - `## 概要` — 1〜3 文。何について話し、何が明らかになったか
      - `## 結論・決定事項` — 箇条書き。ingest 時に entities/concepts へ反映される中心的な内容
-     - `## 未解決事項` — セッション側に「未解決・次セッションへの持ち越し事項」があれば継承する箇条書き。なければこの節ごと省略してよい
-4. 対象セッションファイル自体は変更しない(`status: logged` のまま維持する。`accepted`/`rejected` への更新は別スキルの担当でこのスキルのスコープ外)
-5. 作業完了後、作成したファイルパスと、手順2で行った判断(何を結論として残し、何を割愛したか)をユーザに簡潔に報告する
+       - `prev` の議事録の結論を覆した項目は、`[[10_raws/meetings/YYYYMMDD_slug]] の <項目> を撤回` と明示したうえで新しい結論を書く。`/ingest` が wiki 側の該当記述を上書きできるようにするため
+     - **`## 未解決事項` は作らない。** セッション側の「未解決・次セッションへの持ち越し事項」は議事録に持ち込まない(理由は下記「注意」を参照)
+4. 対象セッションファイルの frontmatter の `status` を `logged` から `accepted` に更新する
+   - 更新するのは `status` の 1 行のみ。本文やそれ以外の frontmatter 項目は変更しない
+   - 手順3のファイル作成が完了した後に行う。作成に失敗した場合や、同名ファイルの確認待ちで中断した場合は `logged` のまま残す
+   - `rejected`(昇華する価値がないと判断した状態)への更新はこのスキルのスコープ外で、ユーザの担当
+5. 作業完了後、作成したファイルパスと、手順2で行った判断(何を結論として残し、何を割愛したか)をユーザに簡潔に報告する。手順4で `accepted` に更新したことも併せて伝える
 
 ## 注意
 
 - `vault/10_raws/` は本来 LLM が新規作成しない不変レイヤーだが、`meetings/` 配下に限り本スキルが例外的に新規作成することが `CLAUDE.md` で認められている。`clips/` `notes/` `assets/` のファイルを本スキルが作成・書き換えすることはない
 - 会話全体をそのまま書き写さない。結論・決定事項を中心に圧縮し、経緯は書かない
+- 未解決事項・持ち越し事項・TODO の類は議事録に書かない。`10_raws/` は不変レイヤーであり、未解決事項は翌日には解決されうる。不変の場所に置くと直せないまま古くなる。それらはセッションファイル (`00_pools/sessions/`) に残したままにして、次のセッションが読みに行く
 - 作成した raw ノートの `status` は `draft` で止める。`stable` への更新はユーザの判断であり、このスキルは行わない

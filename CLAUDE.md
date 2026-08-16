@@ -22,7 +22,7 @@ Obsidian vault のルートは `vault/` である。本ドキュメントに現�
 ディレクトリ構成は以下。
 
 - `memos/`: ユーザのアイデアや着想のメモ置き場。LLM は勝手に読み書きしない。
-- `sessions/`: LLM とのセッションの記録や、ユーザが他者と打ち合わせした会話のログ。`/session` が書き、`/meeting` が読む。
+- `sessions/`: LLM とのセッションの記録や、ユーザが他者と打ち合わせした会話のログ。`/session` が書き、`/meeting` が読む (`/meeting` は議事録化した対象セッションの `status` のみ `accepted` に更新する)。
 
 ### `vault/10_raws/`
 
@@ -155,5 +155,5 @@ Obsidian の `[[ページ名]]` 形式を使う。リンク先が `20_wiki/` 内
 | `/query`   | `20_wiki/`                    | なし (読み取り専用)                               | Wiki の内容をもとに出典付きで回答する          |
 | `/lint`    | `20_wiki/`                    | `20_wiki/` 全体                                   | 矛盾・孤立ページ・リンク不整合を検出し修正する |
 | `/session` | 現在の会話                    | `00_pools/sessions/`                              | 会話をセッション記録として保存する             |
-| `/meeting` | `00_pools/sessions/`          | `10_raws/meetings/`                               | セッションから議事録を抽出し生ソース化する     |
+| `/meeting` | `00_pools/sessions/`          | `10_raws/meetings/`、および対象セッションの `status` のみ | セッションから議事録を抽出し生ソース化する (完了後に対象セッションを `accepted` に更新する) |
 | `/note`    | note.com (公開 API)           | `10_raws/notes/`, `10_raws/assets/`               | note.com の公開記事を生ソースとして取り込む (再取り込み時は当該ソースの `status` を `draft` に戻す) |

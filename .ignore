@@ -1,0 +1,4 @@
+# ripgrep / fd 用。.gitignore より優先される。
+# vault/ は別リポジトリのため .gitignore で除外しているが、
+# 全文検索 (Claude Code の Grep / Glob) からは見えるようにする。
+!vault/
